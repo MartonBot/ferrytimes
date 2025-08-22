@@ -1,0 +1,6 @@
+@FerryTimes.Api_HostAddress = http://localhost:5142
+
+GET {{FerryTimes.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

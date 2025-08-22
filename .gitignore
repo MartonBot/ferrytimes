@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.db
+TestResults/
+**/bin/
+**/obj/
+**/.vscode/
+Playwright/.local-browsers/

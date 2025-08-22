@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2B4A3D7C-0320-40C1-9551-233DCB1C87C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FerryTimes.Api", "src\FerryTimes.Api\FerryTimes.Api.csproj", "{E92987F2-AA1C-4D99-8685-2F373827566C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FerryTimes.Core", "src\FerryTimes.Core\FerryTimes.Core.csproj", "{E5CE17A3-DC03-46C3-AE9B-49D40027873D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E92987F2-AA1C-4D99-8685-2F373827566C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E92987F2-AA1C-4D99-8685-2F373827566C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E92987F2-AA1C-4D99-8685-2F373827566C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E92987F2-AA1C-4D99-8685-2F373827566C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E92987F2-AA1C-4D99-8685-2F373827566C} = {2B4A3D7C-0320-40C1-9551-233DCB1C87C6}
+		{E5CE17A3-DC03-46C3-AE9B-49D40027873D} = {2B4A3D7C-0320-40C1-9551-233DCB1C87C6}
+	EndGlobalSection
+EndGlobal
