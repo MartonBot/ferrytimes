@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using FerryTimes.Core;
 using Microsoft.Playwright;
 
@@ -20,20 +22,26 @@ public class AremitiScraper : IFerryScraper
         var page = await browser.NewPageAsync();
         await page.GotoAsync(TimetableUrl);
 
+        await page.WaitForSelectorAsync("#startDate");
+
+        string startDateStr = (await (await page.QuerySelectorAsync("#startDate")).InnerTextAsync()).Trim();
+        var startDate = DateTime.ParseExact(startDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        DateTime tripDate = startDate;
+
         // Wait for timetable table to load (update selector if necessary)
         await page.WaitForSelectorAsync("#horaires-table-tahiti-moo");
+        await page.WaitForSelectorAsync("#horaires-table-moo-tahiti");
 
         // Dictionary to hold the schedule
         var schedule = new Dictionary<string, List<string>>();
 
         // Select all days
-        var dayElements = await page.QuerySelectorAllAsync("#horaires-table-tahiti-moo .day-of-week");
+        var dayElementsFromTahiti = await page.QuerySelectorAllAsync("#horaires-table-tahiti-moo .day-of-week");
 
-        foreach (var dayElement in dayElements)
+        foreach (var dayElement in dayElementsFromTahiti)
         {
             // Get the day name
             var headerElement = await dayElement.QuerySelectorAsync(".header");
-            string dayName = (await headerElement.InnerTextAsync()).Trim();
 
             // Get all times
             var timeElements = await dayElement.QuerySelectorAllAsync(".trip-date");
@@ -41,17 +49,25 @@ public class AremitiScraper : IFerryScraper
             foreach (var timeElement in timeElements)
             {
                 string timeText = (await timeElement.InnerTextAsync()).Trim();
-                times.Add(timeText);
+                var timeOfDay = DateTime.ParseExact(timeText, "HH:mm", CultureInfo.InvariantCulture).TimeOfDay;
+                Timetable timetable = new()
+                {
+                    DepartureUtc = tripDate.Add(timeOfDay),
+                    Origin = "Tahiti",
+                    Destination = "Moorea",
+                    Company = "Aremiti"
+                };
+                results.Add(timetable);
             }
 
-            schedule[dayName] = times;
+            tripDate = tripDate.AddDays(1);
         }
 
-        // Print the schedule
-        foreach (var day in schedule)
+        var options = new JsonSerializerOptions
         {
-            Console.WriteLine($"{day.Key}: {string.Join(", ", day.Value)}");
-        }
+            WriteIndented = true // pretty-print
+        };
+        Console.Write( JsonSerializer.Serialize(results, options));
 
         await browser.CloseAsync();
 
