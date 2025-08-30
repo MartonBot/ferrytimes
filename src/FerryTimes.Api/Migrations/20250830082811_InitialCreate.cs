@@ -17,8 +17,8 @@ namespace FerryTimes.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    DepartureUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ArrivalUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Departure = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Arrival = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Origin = table.Column<string>(type: "TEXT", nullable: false),
                     Destination = table.Column<string>(type: "TEXT", nullable: false),
                     Company = table.Column<string>(type: "TEXT", nullable: false)

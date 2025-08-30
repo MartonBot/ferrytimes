@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FerryTimes.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250822001009_InitialCreate")]
+    [Migration("20250830082811_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -26,14 +26,14 @@ namespace FerryTimes.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("ArrivalUtc")
+                    b.Property<DateTime>("Arrival")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Company")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DepartureUtc")
+                    b.Property<DateTime>("Departure")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Destination")

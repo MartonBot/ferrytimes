@@ -21,27 +21,59 @@ var app = builder.Build();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
 // Next boat
-app.MapGet("/api/timetables/next", async (AppDbContext db, string from, string to) =>
+app.MapGet("/api/timetables/next", async (AppDbContext db, string from = "Tahiti") =>
 {
-    var now = DateTime.UtcNow;
+    DateTime utcNow = DateTime.UtcNow;
+    TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
+    DateTime now = TimeZoneInfo.ConvertTimeFromUtc(utcNow, tahitiTimeZone);
     var next = await db.Timetables
-        .Where(t => t.Origin == from && t.Destination == to && t.DepartureUtc > now)
-        .OrderBy(t => t.DepartureUtc)
+        .Where(t => t.Origin == from && t.Departure > now)
+        .OrderBy(t => t.Departure)
         .FirstOrDefaultAsync();
     return next is null ? Results.NotFound() : Results.Ok(next);
 });
 
-// Today’s boats (UTC—adjust later for local TZ)
+// Today’s boats
 app.MapGet("/api/timetables/today", async (AppDbContext db, string from, string to) =>
 {
     var today = DateTime.UtcNow.Date;
     var tomorrow = today.AddDays(1);
     var list = await db.Timetables
         .Where(t => t.Origin == from && t.Destination == to &&
-                    t.DepartureUtc >= today && t.DepartureUtc < tomorrow)
-        .OrderBy(t => t.DepartureUtc)
+                    t.Departure >= today && t.Departure < tomorrow)
+        .OrderBy(t => t.Departure)
         .ToListAsync();
     return Results.Ok(list);
+});
+
+// Scrape now
+app.MapPost("/api/scrape-now", async (
+    IEnumerable<IFerryScraper> scrapers,
+    AppDbContext db,
+    CancellationToken ct) =>
+{
+    var results = new List<Timetable>();
+
+    foreach (var scraper in scrapers)
+    {
+        var data = await scraper.ScrapeAsync(ct);
+        results.AddRange(data);
+    }
+
+    // (Simple refresh logic: wipe today’s entries for these companies, then insert fresh)
+    var today = DateTime.UtcNow.Date;
+    var todays = db.Timetables.Where(t => t.Departure.Date == today);
+    db.Timetables.RemoveRange(todays);
+    await db.SaveChangesAsync(ct);
+
+    await db.Timetables.AddRangeAsync(results, ct);
+    await db.SaveChangesAsync(ct);
+
+    return Results.Ok(new
+    {
+        Count = results.Count,
+        Message = $"Scrape complete at {DateTime.UtcNow}"
+    });
 });
 
 app.Run();

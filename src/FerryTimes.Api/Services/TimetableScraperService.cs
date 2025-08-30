@@ -35,7 +35,7 @@ public class TimetableScraperService : BackgroundService
 
                 // Simple refresh strategy: wipe today's and re-insert (tweak later)
                 var today = DateTime.UtcNow.Date;
-                var todays = db.Timetables.Where(t => t.DepartureUtc.Date == today);
+                var todays = db.Timetables.Where(t => t.Departure.Date == today);
                 db.Timetables.RemoveRange(todays);
                 await db.SaveChangesAsync(stoppingToken);
 

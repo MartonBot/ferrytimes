@@ -23,14 +23,14 @@ namespace FerryTimes.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("ArrivalUtc")
+                    b.Property<DateTime>("Arrival")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Company")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DepartureUtc")
+                    b.Property<DateTime>("Departure")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Destination")

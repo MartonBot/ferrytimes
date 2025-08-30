@@ -52,7 +52,7 @@ public class AremitiScraper : IFerryScraper
                 var timeOfDay = DateTime.ParseExact(timeText, "HH:mm", CultureInfo.InvariantCulture).TimeOfDay;
                 Timetable timetable = new()
                 {
-                    DepartureUtc = tripDate.Add(timeOfDay),
+                    Departure = tripDate.Add(timeOfDay),
                     Origin = "Tahiti",
                     Destination = "Moorea",
                     Company = "Aremiti"
@@ -62,12 +62,6 @@ public class AremitiScraper : IFerryScraper
 
             tripDate = tripDate.AddDays(1);
         }
-
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true // pretty-print
-        };
-        Console.Write( JsonSerializer.Serialize(results, options));
 
         await browser.CloseAsync();
 
