@@ -29,6 +29,12 @@ app.MapGet("/api/timetables/next", async (AppDbContext db, string from = "Tahiti
     var next = await db.Timetables
         .Where(t => t.Origin == from && t.Departure > now)
         .OrderBy(t => t.Departure)
+        .Select(t => new
+        {
+            Departure = t.Departure.ToString("dd/MM HH:mm"),
+            t.Origin,
+            t.Company
+        })
         .FirstOrDefaultAsync();
     return next is null ? Results.NotFound() : Results.Ok(next);
 });
@@ -41,8 +47,36 @@ app.MapGet("/api/timetables/today", async (AppDbContext db, string from = "") =>
     var tomorrow = today.AddDays(1);
     var list = await db.Timetables
         .Where(t => (string.IsNullOrWhiteSpace(from) || t.Origin == from) &&
-                    t.Departure >= now && t.Departure < tomorrow)
+                    t.Departure >= today && t.Departure < tomorrow)
         .OrderBy(t => t.Departure)
+        .Select(t => new
+        {
+            Departure = t.Departure.ToString("dd/MM HH:mm"),
+            t.Origin,
+            t.Company
+        })
+        .ToListAsync();
+    return Results.Ok(list);
+});
+
+// Today’s boats by company
+app.MapGet("/api/timetables/today/{companyname}", async (AppDbContext db, string companyname, string from = "") =>
+{
+    DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
+    var today = now.Date;
+    var tomorrow = today.AddDays(1);
+    var list = await db.Timetables
+        .Where(t =>
+            t.Company.ToLower() == companyname.ToLower() &&
+            (string.IsNullOrWhiteSpace(from) || t.Origin == from) &&
+            t.Departure >= today && t.Departure < tomorrow)
+        .OrderBy(t => t.Departure)
+        .Select(t => new
+        {
+            Departure = t.Departure.ToString("dd/MM HH:mm"),
+            t.Origin,
+            t.Company
+        })
         .ToListAsync();
     return Results.Ok(list);
 });
