@@ -7,6 +7,14 @@ namespace FerryTimes.Api.Scraping;
 public class AremitiScraper : IFerryScraper
 {
     private const string TimetableUrl = "https://www.aremitiexpress.com/en/home/";
+    private const string StartDateSelector = "#startDate";
+    private const string TahitiToMooreaSelector = "#horaires-table-tahiti-moo";
+    private const string MooreaToTahitiSelector = "#horaires-table-moo-tahiti";
+    private const string DayOfWeekSelector = ".day-of-week";
+    private const string TripDateSelector = ".trip-date";
+    private const string DateFormat = "dd/MM/yyyy";
+    private const string TimeFormat = "HH:mm";
+    private const string CompanyName = "Aremiti";
 
     private record RouteConfig(string TableSelector, string Origin, string Destination);
 
@@ -22,21 +30,21 @@ public class AremitiScraper : IFerryScraper
 
         var page = await browser.NewPageAsync();
         await page.GotoAsync(TimetableUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
-        await page.WaitForSelectorAsync("#startDate");
+        await page.WaitForSelectorAsync(StartDateSelector);
 
-        var startDateElement = await page.QuerySelectorAsync("#startDate") ?? throw new InvalidOperationException("Start date element not found on the page.");
+        var startDateElement = await page.QuerySelectorAsync(StartDateSelector) ?? throw new InvalidOperationException("Start date element not found on the page.");
         string startDateStr = (await startDateElement.InnerTextAsync()).Trim();
-        var startDate = DateTime.ParseExact(startDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        var startDate = DateTime.ParseExact(startDateStr, DateFormat, CultureInfo.InvariantCulture);
 
         // Make sure both tables are loaded
-        await page.WaitForSelectorAsync("#horaires-table-tahiti-moo");
-        await page.WaitForSelectorAsync("#horaires-table-moo-tahiti");
+        await page.WaitForSelectorAsync(TahitiToMooreaSelector);
+        await page.WaitForSelectorAsync(MooreaToTahitiSelector);
 
         // Define the routes once
         var routes = new[]
         {
-            new RouteConfig("#horaires-table-tahiti-moo", "Tahiti", "Moorea"),
-            new RouteConfig("#horaires-table-moo-tahiti", "Moorea", "Tahiti")
+            new RouteConfig(TahitiToMooreaSelector, "Tahiti", "Moorea"),
+            new RouteConfig(MooreaToTahitiSelector, "Moorea", "Tahiti")
         };
 
         foreach (var route in routes)
@@ -53,24 +61,24 @@ public class AremitiScraper : IFerryScraper
     private static async Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, RouteConfig config, DateTime startDate)
     {
         var timetables = new List<Timetable>();
-        var dayElements = await page.QuerySelectorAllAsync($"{config.TableSelector} .day-of-week");
+        var dayElements = await page.QuerySelectorAllAsync($"{config.TableSelector} {DayOfWeekSelector}");
         DateTime tripDate = startDate;
 
         foreach (var dayElement in dayElements)
         {
-            var timeElements = await dayElement.QuerySelectorAllAsync(".trip-date");
+            var timeElements = await dayElement.QuerySelectorAllAsync(TripDateSelector);
 
             foreach (var timeElement in timeElements)
             {
                 string timeText = (await timeElement.InnerTextAsync()).Trim();
-                var timeOfDay = DateTime.ParseExact(timeText, "HH:mm", CultureInfo.InvariantCulture).TimeOfDay;
+                var timeOfDay = DateTime.ParseExact(timeText, TimeFormat, CultureInfo.InvariantCulture).TimeOfDay;
 
                 timetables.Add(new Timetable
                 {
                     Departure = tripDate.Add(timeOfDay),
                     Origin = config.Origin,
                     Destination = config.Destination,
-                    Company = "Aremiti"
+                    Company = CompanyName
                 });
             }
 
