@@ -24,7 +24,8 @@ public class AremitiScraper : IFerryScraper
         await page.GotoAsync(TimetableUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
         await page.WaitForSelectorAsync("#startDate");
 
-        string startDateStr = (await (await page.QuerySelectorAsync("#startDate")).InnerTextAsync()).Trim();
+        var startDateElement = await page.QuerySelectorAsync("#startDate") ?? throw new InvalidOperationException("Start date element not found on the page.");
+        string startDateStr = (await startDateElement.InnerTextAsync()).Trim();
         var startDate = DateTime.ParseExact(startDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture);
 
         // Make sure both tables are loaded
@@ -45,10 +46,11 @@ public class AremitiScraper : IFerryScraper
         }
 
         await browser.CloseAsync();
+
         return results;
     }
 
-    private async Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, RouteConfig config, DateTime startDate)
+    private static async Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, RouteConfig config, DateTime startDate)
     {
         var timetables = new List<Timetable>();
         var dayElements = await page.QuerySelectorAllAsync($"{config.TableSelector} .day-of-week");
