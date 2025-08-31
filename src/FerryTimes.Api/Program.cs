@@ -14,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // DI: scrapers + background service
 builder.Services.AddScoped<IFerryScraper, AremitiScraper>();
+builder.Services.AddScoped<IFerryScraper, VaearaiScraper>();
 builder.Services.AddHostedService<TimetableScraperService>();
 
 // Minimal APIs
