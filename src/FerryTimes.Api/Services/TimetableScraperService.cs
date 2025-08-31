@@ -1,6 +1,5 @@
 using FerryTimes.Api.Data;
 using FerryTimes.Core;
-using Microsoft.EntityFrameworkCore;
 
 namespace FerryTimes.Api.Services;
 
@@ -30,13 +29,12 @@ public class TimetableScraperService : BackgroundService
                 foreach (var scraper in scrapers)
                 {
                     var data = await scraper.ScrapeAsync(stoppingToken);
+                    _logger.LogInformation("Scraped {Count} records for {ScraperName}", data.Count, scraper.GetType().Name);
                     results.AddRange(data);
                 }
 
-                // Simple refresh strategy: wipe today's and re-insert (tweak later)
-                var today = DateTime.UtcNow.Date;
-                var todays = db.Timetables.Where(t => t.Departure.Date == today);
-                db.Timetables.RemoveRange(todays);
+                // Simple refresh strategy: wipe everything and re-insert (tweak later)
+                db.Timetables.RemoveRange(db.Timetables);
                 await db.SaveChangesAsync(stoppingToken);
 
                 await db.Timetables.AddRangeAsync(results, stoppingToken);
