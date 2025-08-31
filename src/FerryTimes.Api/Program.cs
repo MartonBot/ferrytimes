@@ -4,6 +4,8 @@ using FerryTimes.Api.Services;
 using FerryTimes.Core;
 using Microsoft.EntityFrameworkCore;
 
+TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // SQLite DB
@@ -23,9 +25,7 @@ app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 // Next boat
 app.MapGet("/api/timetables/next", async (AppDbContext db, string from = "Tahiti") =>
 {
-    DateTime utcNow = DateTime.UtcNow;
-    TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
-    DateTime now = TimeZoneInfo.ConvertTimeFromUtc(utcNow, tahitiTimeZone);
+    DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
     var next = await db.Timetables
         .Where(t => t.Origin == from && t.Departure > now)
         .OrderBy(t => t.Departure)
@@ -34,19 +34,20 @@ app.MapGet("/api/timetables/next", async (AppDbContext db, string from = "Tahiti
 });
 
 // Today’s boats
-app.MapGet("/api/timetables/today", async (AppDbContext db, string from, string to) =>
+app.MapGet("/api/timetables/today", async (AppDbContext db, string from = "") =>
 {
-    var today = DateTime.UtcNow.Date;
+    DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
+    var today = now.Date;
     var tomorrow = today.AddDays(1);
     var list = await db.Timetables
-        .Where(t => t.Origin == from && t.Destination == to &&
-                    t.Departure >= today && t.Departure < tomorrow)
+        .Where(t => (string.IsNullOrWhiteSpace(from) || t.Origin == from) &&
+                    t.Departure >= now && t.Departure < tomorrow)
         .OrderBy(t => t.Departure)
         .ToListAsync();
     return Results.Ok(list);
 });
 
-// Scrape now
+// Scrape now the current week and the following
 app.MapPost("/api/scrape-now", async (
     IEnumerable<IFerryScraper> scrapers,
     AppDbContext db,
@@ -60,19 +61,21 @@ app.MapPost("/api/scrape-now", async (
         results.AddRange(data);
     }
 
-    // (Simple refresh logic: wipe today’s entries for these companies, then insert fresh)
-    var today = DateTime.UtcNow.Date;
-    var todays = db.Timetables.Where(t => t.Departure.Date == today);
-    db.Timetables.RemoveRange(todays);
+    // todo make sure we have scraped successfully for each company - otherwise we don't want to delete the old data
+
+    // (Simple refresh logic: wipe all entries, then insert fresh)
+    db.Timetables.RemoveRange(db.Timetables);
     await db.SaveChangesAsync(ct);
 
     await db.Timetables.AddRangeAsync(results, ct);
     await db.SaveChangesAsync(ct);
 
+    DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
+
     return Results.Ok(new
     {
         Count = results.Count,
-        Message = $"Scrape complete at {DateTime.UtcNow}"
+        Message = $"Scraped {results.Count} records at {now}"
     });
 });
 
