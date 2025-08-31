@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using FerryTimes.Core;
 using Microsoft.Playwright;
 
@@ -8,6 +7,8 @@ namespace FerryTimes.Api.Scraping;
 public class AremitiScraper : IFerryScraper
 {
     private const string TimetableUrl = "https://www.aremitiexpress.com/en/home/";
+
+    private record RouteConfig(string TableSelector, string Origin, string Destination);
 
     public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct)
     {
@@ -20,51 +21,60 @@ public class AremitiScraper : IFerryScraper
         });
 
         var page = await browser.NewPageAsync();
-        await page.GotoAsync(TimetableUrl);
-
+        await page.GotoAsync(TimetableUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
         await page.WaitForSelectorAsync("#startDate");
 
         string startDateStr = (await (await page.QuerySelectorAsync("#startDate")).InnerTextAsync()).Trim();
         var startDate = DateTime.ParseExact(startDateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-        DateTime tripDate = startDate;
 
-        // Wait for timetable table to load (update selector if necessary)
+        // Make sure both tables are loaded
         await page.WaitForSelectorAsync("#horaires-table-tahiti-moo");
         await page.WaitForSelectorAsync("#horaires-table-moo-tahiti");
 
-        // Dictionary to hold the schedule
-        var schedule = new Dictionary<string, List<string>>();
-
-        // Select all days
-        var dayElementsFromTahiti = await page.QuerySelectorAllAsync("#horaires-table-tahiti-moo .day-of-week");
-
-        foreach (var dayElement in dayElementsFromTahiti)
+        // Define the routes once
+        var routes = new[]
         {
-            // Get the day name
-            var headerElement = await dayElement.QuerySelectorAsync(".header");
+            new RouteConfig("#horaires-table-tahiti-moo", "Tahiti", "Moorea"),
+            new RouteConfig("#horaires-table-moo-tahiti", "Moorea", "Tahiti")
+        };
 
-            // Get all times
+        foreach (var route in routes)
+        {
+            var timetables = await ExtractTimetablesAsync(page, route, startDate);
+            results.AddRange(timetables);
+        }
+
+        await browser.CloseAsync();
+        return results;
+    }
+
+    private async Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, RouteConfig config, DateTime startDate)
+    {
+        var timetables = new List<Timetable>();
+        var dayElements = await page.QuerySelectorAllAsync($"{config.TableSelector} .day-of-week");
+        DateTime tripDate = startDate;
+
+        foreach (var dayElement in dayElements)
+        {
             var timeElements = await dayElement.QuerySelectorAllAsync(".trip-date");
-            var times = new List<string>();
+
             foreach (var timeElement in timeElements)
             {
                 string timeText = (await timeElement.InnerTextAsync()).Trim();
                 var timeOfDay = DateTime.ParseExact(timeText, "HH:mm", CultureInfo.InvariantCulture).TimeOfDay;
-                Timetable timetable = new()
+
+                timetables.Add(new Timetable
                 {
                     Departure = tripDate.Add(timeOfDay),
-                    Origin = "Tahiti",
-                    Destination = "Moorea",
+                    Origin = config.Origin,
+                    Destination = config.Destination,
                     Company = "Aremiti"
-                };
-                results.Add(timetable);
+                });
             }
 
             tripDate = tripDate.AddDays(1);
         }
 
-        await browser.CloseAsync();
-
-        return results;
+        return timetables;
     }
 }
