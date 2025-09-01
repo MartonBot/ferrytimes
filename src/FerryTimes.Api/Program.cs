@@ -82,6 +82,32 @@ app.MapGet("/api/timetables/today/{companyname}", async (AppDbContext db, string
     return Results.Ok(list);
 });
 
+// Timetables for a specified day
+app.MapGet("/api/timetables/day", async (AppDbContext db, string date, string from = "") =>
+{
+    if (!DateTime.TryParse(date, out var targetDate))
+    {
+        return Results.BadRequest(new { error = "Invalid date format. Use yyyy-MM-dd." });
+    }
+
+    DateTime dayStart = targetDate.Date;
+    DateTime dayEnd = dayStart.AddDays(1);
+
+    var list = await db.Timetables
+        .Where(t => (string.IsNullOrWhiteSpace(from) || t.Origin == from) &&
+                    t.Departure >= dayStart && t.Departure < dayEnd)
+        .OrderBy(t => t.Departure)
+        .Select(t => new
+        {
+            Departure = t.Departure.ToString("dd/MM HH:mm"),
+            t.Origin,
+            t.Company
+        })
+        .ToListAsync();
+
+    return Results.Ok(list);
+});
+
 // Scrape now the current week and the following
 app.MapPost("/api/scrape-now", async (
     IEnumerable<IFerryScraper> scrapers,
