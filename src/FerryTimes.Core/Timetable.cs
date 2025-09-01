@@ -12,5 +12,5 @@ public class Timetable
 
 public interface IFerryScraper
 {
-    Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct);
+    Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1);
 }

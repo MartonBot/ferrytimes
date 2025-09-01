@@ -18,7 +18,7 @@ public class AremitiScraper : IFerryScraper
 
     private record RouteConfig(string TableSelector, string Origin, string Destination);
 
-    public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct)
+    public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1)
     {
         var results = new List<Timetable>();
 
@@ -40,7 +40,61 @@ public class AremitiScraper : IFerryScraper
         await page.WaitForSelectorAsync(TahitiToMooreaSelector);
         await page.WaitForSelectorAsync(MooreaToTahitiSelector);
 
-        // Define the routes once
+        for (int week = 0; week < weeks; week++)
+        {
+            var weekStartDate = startDate.AddDays(7 * week);
+
+            if (week > 0)
+            {
+                await GoToWeekAsync(page, weekStartDate);
+            }
+
+            var weekTimetables = await ScrapeWeekAsync(page, weekStartDate);
+            results.AddRange(weekTimetables);
+        }
+
+        await browser.CloseAsync();
+
+        return results;
+    }
+
+    private async Task GoToWeekAsync(IPage page, DateTime weekStartDate)
+    {
+        // Open the calendar picker
+        await page.ClickAsync("#bt_show_calendar");
+        await page.WaitForSelectorAsync("#datepicker .ui-datepicker-calendar");
+
+        int calendarMonth = weekStartDate.Month - 1;
+        int calendarYear = weekStartDate.Year;
+
+        while (true)
+        {
+            var monthText = await page.InnerTextAsync("#datepicker .ui-datepicker-month");
+            var yearText = await page.InnerTextAsync("#datepicker .ui-datepicker-year");
+            var currentMonth = DateTime.ParseExact(monthText, "MMMM", CultureInfo.GetCultureInfo("fr-FR")).Month - 1;
+            var currentYear = int.Parse(yearText);
+
+            if (currentMonth == calendarMonth && currentYear == calendarYear)
+                break;
+
+            if (currentYear < calendarYear || (currentYear == calendarYear && currentMonth < calendarMonth))
+                await page.ClickAsync("#datepicker .ui-datepicker-next");
+            else
+                await page.ClickAsync("#datepicker .ui-datepicker-prev");
+
+            await page.WaitForTimeoutAsync(200);
+        }
+
+        string daySelector = $"#datepicker td[data-month='{calendarMonth}'][data-year='{calendarYear}'] a[data-date='{weekStartDate.Day}']";
+        await page.ClickAsync(daySelector);
+
+        await page.WaitForSelectorAsync(TahitiToMooreaSelector);
+        await page.WaitForSelectorAsync(MooreaToTahitiSelector);
+    }
+
+    private async Task<IEnumerable<Timetable>> ScrapeWeekAsync(IPage page, DateTime weekStartDate)
+    {
+        var timetables = new List<Timetable>();
         var routes = new[]
         {
             new RouteConfig(TahitiToMooreaSelector, "Tahiti", "Moorea"),
@@ -49,13 +103,11 @@ public class AremitiScraper : IFerryScraper
 
         foreach (var route in routes)
         {
-            var timetables = await ExtractTimetablesAsync(page, route, startDate);
-            results.AddRange(timetables);
+            var routeTimetables = await ExtractTimetablesAsync(page, route, weekStartDate);
+            timetables.AddRange(routeTimetables);
         }
 
-        await browser.CloseAsync();
-
-        return results;
+        return timetables;
     }
 
     private static async Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, RouteConfig config, DateTime startDate)

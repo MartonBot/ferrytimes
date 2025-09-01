@@ -16,7 +16,7 @@ public class VaearaiScraper : IFerryScraper
 
     private record RouteConfig(string TableSelector, string Origin, string Destination);
 
-    public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct)
+    public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1)
     {
         var results = new List<Timetable>();
 

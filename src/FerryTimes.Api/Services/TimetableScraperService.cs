@@ -28,7 +28,7 @@ public class TimetableScraperService : BackgroundService
                 var results = new List<Timetable>();
                 foreach (var scraper in scrapers)
                 {
-                    var data = await scraper.ScrapeAsync(stoppingToken);
+                    var data = await scraper.ScrapeAsync(stoppingToken, 2);
                     _logger.LogInformation("Scraped {Count} records for {ScraperName}", data.Count, scraper.GetType().Name);
                     results.AddRange(data);
                 }
