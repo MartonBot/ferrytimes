@@ -74,7 +74,7 @@ public abstract class BaseFerryScraper : IFerryScraper
             await page.WaitForTimeoutAsync(200);
         }
 
-        string daySelector = $"#datepicker td[data-month='{calendarMonth}'][data-year='{calendarYear}'] a[data-date='{weekStartDate.Day}']";
+        string daySelector = $"#datepicker td[data-month='{calendarMonth}'][data-year='{calendarYear}'] a";
         await page.ClickAsync(daySelector);
 
         // Wait for all required tables
