@@ -3,22 +3,47 @@ using FerryTimes.Api.Scraping;
 using FerryTimes.Api.Services;
 using FerryTimes.Core;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Read Serilog config from appsettings.json
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // SQLite DB
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite("Data Source=timetables.db"));
 
 // DI: scrapers + background service
+builder.Services.AddScoped<IFerryScraper, TerevauScraper>();
 builder.Services.AddScoped<IFerryScraper, AremitiScraper>();
 builder.Services.AddScoped<IFerryScraper, VaearaiScraper>();
 builder.Services.AddHostedService<TimetableScraperService>();
+builder.Services.AddHostedService<ApiUsageLogProcessor>();
 
 // Minimal APIs
 var app = builder.Build();
+
+// Middleware to log API usage separately
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        Log.ForContext("ApiUsage", true)
+           .Information("API Hit {Endpoint} {Params} at {TimeUtc}",
+                context.Request.Path,
+                context.Request.QueryString.HasValue ? context.Request.QueryString.Value : "",
+                DateTime.UtcNow);
+    }
+
+    await next();
+});
 
 // Health
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
