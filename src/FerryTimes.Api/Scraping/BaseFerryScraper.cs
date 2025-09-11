@@ -1,11 +1,16 @@
 using System.Globalization;
 using FerryTimes.Core;
 using Microsoft.Playwright;
+using System.Net;
+using System.Net.Mail;
+using Microsoft.Extensions.Configuration;
 
 namespace FerryTimes.Api.Scraping;
 
 public abstract class BaseFerryScraper : IFerryScraper
 {
+    private readonly IConfiguration _configuration;
+
     protected abstract string TimetableUrl { get; }
     protected abstract string StartDateSelector { get; }
     protected abstract string[] TableSelectors { get; }
@@ -13,37 +18,50 @@ public abstract class BaseFerryScraper : IFerryScraper
     protected abstract string CompanyName { get; }
     protected abstract Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, DateTime weekStartDate, CancellationToken ct);
 
+    protected BaseFerryScraper(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1)
     {
         var results = new List<Timetable>();
 
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-
-        var page = await browser.NewPageAsync();
-        await page.GotoAsync(TimetableUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
-        await page.WaitForSelectorAsync(StartDateSelector);
-
-        var startDateElement = await page.QuerySelectorAsync(StartDateSelector) ?? throw new InvalidOperationException("Start date element not found on the page.");
-        string startDateStr = (await startDateElement.InnerTextAsync()).Trim();
-        var startDate = DateTime.ParseExact(startDateStr, DateFormat, CultureInfo.InvariantCulture);
-
-        // Wait for all required tables
-        foreach (var selector in TableSelectors)
-            await page.WaitForSelectorAsync(selector);
-
-        for (int week = 0; week < weeks; week++)
+        try
         {
-            var weekStartDate = startDate.AddDays(7 * week);
+            using var playwright = await Playwright.CreateAsync();
+            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 
-            if (week > 0)
-                await GoToWeekAsync(page, weekStartDate);
+            var page = await browser.NewPageAsync();
+            await page.GotoAsync(TimetableUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+            await page.WaitForSelectorAsync(StartDateSelector);
 
-            var weekTimetables = await ExtractTimetablesAsync(page, weekStartDate, ct);
-            results.AddRange(weekTimetables);
+            var startDateElement = await page.QuerySelectorAsync(StartDateSelector) ?? throw new InvalidOperationException("Start date element not found on the page.");
+            string startDateStr = (await startDateElement.InnerTextAsync()).Trim();
+            var startDate = DateTime.ParseExact(startDateStr, DateFormat, CultureInfo.InvariantCulture);
+
+            // Wait for all required tables
+            foreach (var selector in TableSelectors)
+                await page.WaitForSelectorAsync(selector);
+
+            for (int week = 0; week < weeks; week++)
+            {
+                var weekStartDate = startDate.AddDays(7 * week);
+
+                if (week > 0)
+                    await GoToWeekAsync(page, weekStartDate);
+
+                var weekTimetables = await ExtractTimetablesAsync(page, weekStartDate, ct);
+                results.AddRange(weekTimetables);
+            }
+
+            await browser.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            await NotifyFailureAsync(CompanyName, ex.Message, _configuration);
         }
 
-        await browser.CloseAsync();
         return results;
     }
 
@@ -81,4 +99,35 @@ public abstract class BaseFerryScraper : IFerryScraper
         foreach (var selector in TableSelectors)
             await page.WaitForSelectorAsync(selector);
     }
+
+    public static async Task NotifyFailureAsync(string scraperName, string errorMessage, IConfiguration configuration)
+    {
+        var smtpSettings = configuration.GetSection("SmtpSettings");
+        var smtpHost = smtpSettings["Host"] ?? throw new InvalidOperationException("SMTP Host is not configured.");
+        var smtpPort = smtpSettings["Port"] ?? throw new InvalidOperationException("SMTP Port is not configured.");
+        var smtpUsername = smtpSettings["Username"] ?? throw new InvalidOperationException("SMTP Username is not configured.");
+        var smtpPassword = smtpSettings["Password"] ?? throw new InvalidOperationException("SMTP Password is not configured.");
+        var smtpEnableSsl = smtpSettings["EnableSsl"] ?? throw new InvalidOperationException("SMTP EnableSsl is not configured.");
+        var fromEmail = smtpSettings["FromEmail"] ?? throw new InvalidOperationException("From Email is not configured.");
+        var toEmail = smtpSettings["ToEmail"] ?? throw new InvalidOperationException("To Email is not configured.");
+
+        var smtpClient = new SmtpClient(smtpHost)
+        {
+            Port = int.Parse(smtpPort),
+            Credentials = new NetworkCredential(smtpUsername, smtpPassword),
+            EnableSsl = bool.Parse(smtpEnableSsl),
+        };
+
+        var mailMessage = new MailMessage
+        {
+            From = new MailAddress(fromEmail),
+            Subject = $"[Scraper Alert] {scraperName} failed",
+            Body = $"The scraper '{scraperName}' encountered an error:\n\n{errorMessage}\n\nTime: {DateTime.UtcNow}",
+            IsBodyHtml = false,
+        };
+        mailMessage.To.Add(toEmail);
+
+        await smtpClient.SendMailAsync(mailMessage);
+    }
+
 }
