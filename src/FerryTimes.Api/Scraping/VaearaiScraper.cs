@@ -4,7 +4,7 @@ using Microsoft.Playwright;
 
 namespace FerryTimes.Api.Scraping;
 
-public class VaearaiScraper : BaseFerryScraper
+public class VaearaiScraper(IConfiguration configuration) : BaseFerryScraper(configuration)
 {
     protected override string TimetableUrl => "https://www.vaearai.com/horaires/";
     protected override string StartDateSelector => "#startDate";
