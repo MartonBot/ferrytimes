@@ -4,7 +4,7 @@ using Microsoft.Playwright;
 
 namespace FerryTimes.Api.Scraping;
 
-public class AremitiScraper(IConfiguration configuration) : BaseFerryScraper(configuration)
+public class AremitiScraper : BaseFerryScraper
 {
     protected override string TimetableUrl => "https://www.aremitiexpress.com/en/home/";
     protected override string StartDateSelector => "#startDate";

@@ -1,27 +1,16 @@
 using System.Globalization;
 using FerryTimes.Core;
 using Microsoft.Playwright;
-using System.Net;
-using System.Net.Mail;
-using Microsoft.Extensions.Configuration;
-
 namespace FerryTimes.Api.Scraping;
 
 public abstract class BaseFerryScraper : IFerryScraper
 {
-    private readonly IConfiguration _configuration;
-
     protected abstract string TimetableUrl { get; }
     protected abstract string StartDateSelector { get; }
     protected abstract string[] TableSelectors { get; }
     protected abstract string DateFormat { get; }
     protected abstract string CompanyName { get; }
     protected abstract Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, DateTime weekStartDate, CancellationToken ct);
-
-    protected BaseFerryScraper(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
 
     public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1)
     {
@@ -59,7 +48,7 @@ public abstract class BaseFerryScraper : IFerryScraper
         }
         catch (Exception ex)
         {
-            await NotifyFailureAsync(CompanyName, ex.Message, _configuration);
+            await FailureNotifier.NotifyFailureAsync(CompanyName, ex.Message);
         }
 
         return results;
@@ -99,35 +88,4 @@ public abstract class BaseFerryScraper : IFerryScraper
         foreach (var selector in TableSelectors)
             await page.WaitForSelectorAsync(selector);
     }
-
-    public static async Task NotifyFailureAsync(string scraperName, string errorMessage, IConfiguration configuration)
-    {
-        var smtpSettings = configuration.GetSection("SmtpSettings");
-        var smtpHost = smtpSettings["Host"] ?? throw new InvalidOperationException("SMTP Host is not configured.");
-        var smtpPort = smtpSettings["Port"] ?? throw new InvalidOperationException("SMTP Port is not configured.");
-        var smtpUsername = smtpSettings["Username"] ?? throw new InvalidOperationException("SMTP Username is not configured.");
-        var smtpPassword = smtpSettings["Password"] ?? throw new InvalidOperationException("SMTP Password is not configured.");
-        var smtpEnableSsl = smtpSettings["EnableSsl"] ?? throw new InvalidOperationException("SMTP EnableSsl is not configured.");
-        var fromEmail = smtpSettings["FromEmail"] ?? throw new InvalidOperationException("From Email is not configured.");
-        var toEmail = smtpSettings["ToEmail"] ?? throw new InvalidOperationException("To Email is not configured.");
-
-        var smtpClient = new SmtpClient(smtpHost)
-        {
-            Port = int.Parse(smtpPort),
-            Credentials = new NetworkCredential(smtpUsername, smtpPassword),
-            EnableSsl = bool.Parse(smtpEnableSsl),
-        };
-
-        var mailMessage = new MailMessage
-        {
-            From = new MailAddress(fromEmail),
-            Subject = $"[Scraper Alert] {scraperName} failed",
-            Body = $"The scraper '{scraperName}' encountered an error:\n\n{errorMessage}\n\nTime: {DateTime.UtcNow}",
-            IsBodyHtml = false,
-        };
-        mailMessage.To.Add(toEmail);
-
-        await smtpClient.SendMailAsync(mailMessage);
-    }
-
 }
