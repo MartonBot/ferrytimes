@@ -11,6 +11,12 @@ public abstract class BaseFerryScraper : IFerryScraper
     protected abstract string DateFormat { get; }
     protected abstract string CompanyName { get; }
     protected abstract Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, DateTime weekStartDate, CancellationToken ct);
+    private readonly FailureNotifier _failureNotifier;
+
+    protected BaseFerryScraper(FailureNotifier failureNotifier)
+    {
+        _failureNotifier = failureNotifier;
+    }
 
     public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1)
     {
@@ -48,7 +54,7 @@ public abstract class BaseFerryScraper : IFerryScraper
         }
         catch (Exception ex)
         {
-            await FailureNotifier.NotifyFailureAsync(CompanyName, ex.Message);
+            await _failureNotifier.NotifyFailureAsync(CompanyName, ex.Message);
         }
 
         return results;

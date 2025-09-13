@@ -5,9 +5,14 @@ namespace FerryTimes.Api.Scraping
 {
     public class FailureNotifier
     {
-        private static IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
-        public static async Task NotifyFailureAsync(string scraperName, string errorMessage)
+        public FailureNotifier(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public async Task NotifyFailureAsync(string scraperName, string errorMessage)
         {
             var smtpSettings = _configuration.GetSection("SmtpSettings");
             var smtpHost = smtpSettings["Host"] ?? throw new InvalidOperationException("SMTP Host is not configured.");

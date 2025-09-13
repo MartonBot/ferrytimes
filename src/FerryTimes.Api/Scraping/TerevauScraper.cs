@@ -4,7 +4,7 @@ using Microsoft.Playwright;
 
 namespace FerryTimes.Api.Scraping;
 
-public class TerevauScraper : BaseFerryScraper
+public class TerevauScraper(FailureNotifier failureNotifier) : BaseFerryScraper(failureNotifier)
 {
     protected override string TimetableUrl => "https://www.terevau.pf/horaires/";
     protected override string StartDateSelector => "#startDate";
