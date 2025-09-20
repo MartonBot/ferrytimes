@@ -1,6 +1,6 @@
-using FerryTimes.Api.Data;
-using FerryTimes.Api.Scraping;
-using FerryTimes.Api.Services;
+using FerryTimes.Core.Data;
+using FerryTimes.Core.Scraping;
+using FerryTimes.Core.Services;
 using FerryTimes.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;

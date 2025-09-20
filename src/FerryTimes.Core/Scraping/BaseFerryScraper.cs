@@ -1,7 +1,7 @@
 using System.Globalization;
-using FerryTimes.Core;
 using Microsoft.Playwright;
-namespace FerryTimes.Api.Scraping;
+
+namespace FerryTimes.Core.Scraping;
 
 public abstract class BaseFerryScraper : IFerryScraper
 {

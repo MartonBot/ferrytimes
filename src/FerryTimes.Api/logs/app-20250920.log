@@ -1,0 +1,15 @@
+[19:37:40 INF] Now listening on: http://localhost:5142
+[19:37:40 INF] Application started. Press Ctrl+C to shut down.
+[19:37:40 INF] Hosting environment: Development
+[19:37:40 INF] Content root path: F:\myrepos\ferrytimes\src\FerryTimes.Api
+[19:37:52 INF] Scraped 96 records for TerevauScraper
+[19:37:55 INF] Request starting HTTP/1.1 GET http://localhost:5142/api/timetables/next?from=Moorea - null null
+[19:37:56 INF] API Hit /api/timetables/next ?from=Moorea at "2025-09-20T09:37:56.0481995Z"
+[19:37:56 INF] Executing endpoint 'HTTP: GET /api/timetables/next'
+[19:37:57 INF] Setting HTTP status code 200.
+[19:37:57 INF] Writing value of type '<>f__AnonymousType1`3' as Json.
+[19:37:57 INF] Executed endpoint 'HTTP: GET /api/timetables/next'
+[19:37:57 INF] Request finished HTTP/1.1 GET http://localhost:5142/api/timetables/next?from=Moorea - 200 null application/json; charset=utf-8 1512.5019ms
+[19:38:00 INF] Scraped 192 records for AremitiScraper
+[19:38:10 INF] Scraped 118 records for VaearaiScraper
+[19:38:11 INF] Scrape cycle complete: 406 records

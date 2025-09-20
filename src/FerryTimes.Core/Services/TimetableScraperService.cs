@@ -1,7 +1,10 @@
-using FerryTimes.Api.Data;
-using FerryTimes.Core;
+using FerryTimes.Core.Data;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace FerryTimes.Api.Services;
+
+namespace FerryTimes.Core.Services;
 
 public class TimetableScraperService : BackgroundService
 {

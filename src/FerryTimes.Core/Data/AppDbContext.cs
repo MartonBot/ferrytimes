@@ -1,7 +1,6 @@
-using FerryTimes.Core;
 using Microsoft.EntityFrameworkCore;
 
-namespace FerryTimes.Api.Data;
+namespace FerryTimes.Core.Data;
 
 public class AppDbContext : DbContext
 {

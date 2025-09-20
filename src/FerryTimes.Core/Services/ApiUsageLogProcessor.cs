@@ -1,5 +1,9 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
+
+namespace FerryTimes.Core.Services;
 
 public class ApiUsageLogProcessor : BackgroundService
 {
