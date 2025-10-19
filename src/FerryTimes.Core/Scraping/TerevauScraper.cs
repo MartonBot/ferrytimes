@@ -1,9 +1,11 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
 namespace FerryTimes.Core.Scraping;
 
-public class TerevauScraper(FailureNotifier failureNotifier) : BaseFerryScraper(failureNotifier)
+public class TerevauScraper(FailureNotifier failureNotifier, ILogger<TerevauScraper> logger) 
+    : BaseFerryScraper(failureNotifier, logger)
 {
     protected override string TimetableUrl => "https://www.terevau.pf/horaires/";
     protected override string StartDateSelector => "#startDate";

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
 namespace FerryTimes.Core.Scraping;
@@ -12,10 +13,12 @@ public abstract class BaseFerryScraper : IFerryScraper
     protected abstract string CompanyName { get; }
     protected abstract Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, DateTime weekStartDate, CancellationToken ct);
     private readonly FailureNotifier _failureNotifier;
+    private readonly ILogger<BaseFerryScraper> _logger;
 
-    protected BaseFerryScraper(FailureNotifier failureNotifier)
+    protected BaseFerryScraper(FailureNotifier failureNotifier, ILogger<BaseFerryScraper> logger)
     {
         _failureNotifier = failureNotifier;
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<Timetable>> ScrapeAsync(CancellationToken ct, int weeks = 1)
@@ -24,6 +27,7 @@ public abstract class BaseFerryScraper : IFerryScraper
 
         try
         {
+            _logger.LogInformation("Starting scraping for {CompanyName}, fetching {Weeks} week(s) of data", CompanyName, weeks);
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 
@@ -54,6 +58,7 @@ public abstract class BaseFerryScraper : IFerryScraper
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to scrape timetables for {CompanyName}: {ErrorMessage}", CompanyName, ex.Message);
             await _failureNotifier.NotifyFailureAsync(CompanyName, ex.Message);
         }
 
