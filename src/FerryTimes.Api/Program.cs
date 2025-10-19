@@ -9,17 +9,16 @@ TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahit
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog directly in code
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
     .WriteTo.Console()
     .WriteTo.File(
         Path.Combine("logs", "app-.log"),
         rollingInterval: RollingInterval.Day,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .CreateLogger();
-
-builder.Host.UseSerilog();
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        )
+    );
 
 // SQLite DB
 builder.Services.AddDbContext<AppDbContext>(opt =>
