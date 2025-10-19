@@ -15,6 +15,9 @@ public class FailureNotifier
 
     public async Task NotifyFailureAsync(string scraperName, string errorMessage)
     {
+
+        return;
+
         var smtpSettings = _configuration.GetSection("SmtpSettings");
         var smtpHost = smtpSettings["Host"] ?? throw new InvalidOperationException("SMTP Host is not configured.");
         var smtpPort = smtpSettings["Port"] ?? throw new InvalidOperationException("SMTP Port is not configured.");
