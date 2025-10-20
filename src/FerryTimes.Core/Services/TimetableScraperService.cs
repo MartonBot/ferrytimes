@@ -36,6 +36,8 @@ public class TimetableScraperService : BackgroundService
                     results.AddRange(data);
                 }
 
+                // todo here: need not to remove old data if failed to get new data
+
                 // Simple refresh strategy: wipe everything and re-insert (tweak later)
                 db.Timetables.RemoveRange(db.Timetables);
                 await db.SaveChangesAsync(stoppingToken);

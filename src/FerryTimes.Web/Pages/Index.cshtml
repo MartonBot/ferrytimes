@@ -1,10 +1,34 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Ferry Timetables";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mb-4">
+    <h1 class="display-4">Next Ferry from Tahiti</h1>
+    @if (Model.NextFerryFromTahiti != null)
+    {
+        <div class="alert alert-info mt-3">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0">
+                    <tr>
+                        <th>Departure</th>
+                        <td>@Model.NextFerryFromTahiti.Departure.ToString("HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <th>Destination</th>
+                        <td>@Model.NextFerryFromTahiti.Destination</td>
+                    </tr>
+                    <tr>
+                        <th>Company</th>
+                        <td>@Model.NextFerryFromTahiti.Company</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="alert alert-warning">No upcoming ferries from Tahiti scheduled.</p>
+    }
 </div>
