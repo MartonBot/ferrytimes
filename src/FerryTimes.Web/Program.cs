@@ -1,5 +1,6 @@
 using FerryTimes.Core.Data;
 using FerryTimes.Core.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 
 // Add FerryTimes.Core services
-builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseSqlite("Data Source=../../data/timetables.db"));
 builder.Services.AddScoped<TimetableScraperService>();
 
 var app = builder.Build();

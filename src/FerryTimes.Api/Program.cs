@@ -22,7 +22,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 
 // SQLite DB
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite("Data Source=timetables.db"));
+    opt.UseSqlite("Data Source=../../data/timetables.db"));
 
 // DI: scrapers + background service
 builder.Services.AddScoped<IFerryScraper, TerevauScraper>();
