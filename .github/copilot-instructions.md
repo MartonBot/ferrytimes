@@ -8,6 +8,7 @@ FerryTimes is a .NET-based application designed to manage ferry schedules and re
 
 1. **FerryTimes.Api**: The API layer that exposes endpoints for interacting with ferry schedules and other data.
 2. **FerryTimes.Core**: The core library containing business logic, data models, and services.
+3. **FerryTimes.Web**: A Razor Pages web application providing the user interface. It provides an alternative interface to the API. It interfaces directly with the FerryTimes.Core library to fetch timetable data, skipping the REST API.
 
 ### Key Directories
 - `src/FerryTimes.Api`: Contains the API project, including `Program.cs` for application startup and configuration.
@@ -15,18 +16,26 @@ FerryTimes is a .NET-based application designed to manage ferry schedules and re
   - `Data/`: Entity Framework `DbContext` and migrations.
   - `Scraping/`: Scrapers for fetching ferry schedules from external sources.
   - `Services/`: Core services for processing and managing data.
+- `src/FerryTimes.Web`: Contains the Razor Pages web application, including:
+  - `Pages/`: Razor pages and their code-behind files.
+  - `Layout/`: Shared layouts and partial views.
+  - `wwwroot/`: Static web assets.
 
 ## Architecture and Data Flow
 
 1. **Data Scraping**: Scrapers in `Scraping/` fetch data from external ferry services (e.g., Aremiti, Terevau, Vaearai).
    - Scrapers inherit from `BaseFerryScraper` and implement the `ScrapeAsync` method.
    - `FailureNotifier` handles error notifications during scraping.
-2. **Data Storage**: Data is stored in SQLite databases (`stats.db`, `timetables.db`) managed via Entity Framework.
+2. **Data Storage**: Data is stored in SQLite databases managed via Entity Framework:
+   - `stats.db`: Stores usage statistics and metrics.
+   - `timetables.db`: Stores ferry schedules.
 3. **API Layer**: The API layer exposes endpoints for accessing and managing ferry schedules.
+4. **Web Interface**: The Razor Pages web application provides a user-friendly interface for viewing ferry schedules.
 
 ### Why This Structure?
-- Separation of concerns: API and core logic are decoupled for better maintainability.
+- Separation of concerns: API, core logic, and UI are decoupled for better maintainability.
 - Modularity: Scrapers and services are isolated, making it easier to add new ferry providers.
+- Modern web technologies: ASP.NET Core Razor Pages provides a clean, page-focused web development model.
 
 ## Developer Workflows
 
@@ -39,10 +48,12 @@ dotnet build
 Alternatively, use the VS Code task labeled `build`.
 
 ### Running the Application
-The application can be run directly from the `FerryTimes.Api` project. Ensure the SQLite databases (`stats.db`, `timetables.db`) are present in the `src/FerryTimes.Api` directory.
+The application can be run in multiple ways:
+1. Start the API project from `src/FerryTimes.Api`.
+2. Start the web application from `src/FerryTimes.Web`.
 
 ### Debugging
-- Use the `launchSettings.json` file in `src/FerryTimes.Api/Properties/` to configure debugging profiles.
+- Use the `launchSettings.json` files in each project's `Properties/` directory to configure debugging profiles.
 - Logs are stored in `src/FerryTimes.Api/logs/` for troubleshooting.
 
 ### Database Migrations
@@ -79,11 +90,13 @@ pwsh dotnet ef database update
 - **External Dependencies**:
   - SQLite: Used for local data storage.
   - Entity Framework Core: ORM for database management.
+  - ASP.NET Core Razor Pages: Web UI framework.
   - Scrapers: Integrate with external ferry service APIs.
 
 - **Cross-Component Communication**:
   - Scrapers feed data into the database via services.
   - The API layer queries the database to serve client requests.
+  - The Razor Pages web app retrieves data directly from the core library.
 
 ## Examples
 
