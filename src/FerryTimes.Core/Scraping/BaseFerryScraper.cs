@@ -12,12 +12,10 @@ public abstract class BaseFerryScraper : IFerryScraper
     protected abstract string DateFormat { get; }
     protected abstract string CompanyName { get; }
     protected abstract Task<IEnumerable<Timetable>> ExtractTimetablesAsync(IPage page, DateTime weekStartDate, CancellationToken ct);
-    private readonly FailureNotifier _failureNotifier;
     private readonly ILogger<BaseFerryScraper> _logger;
 
-    protected BaseFerryScraper(FailureNotifier failureNotifier, ILogger<BaseFerryScraper> logger)
+    protected BaseFerryScraper(ILogger<BaseFerryScraper> logger)
     {
-        _failureNotifier = failureNotifier;
         _logger = logger;
     }
 
@@ -59,7 +57,6 @@ public abstract class BaseFerryScraper : IFerryScraper
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to scrape timetables for {CompanyName}: {ErrorMessage}", CompanyName, ex.Message);
-            await _failureNotifier.NotifyFailureAsync(CompanyName, ex.Message);
         }
 
         return results;

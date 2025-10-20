@@ -4,8 +4,8 @@ using Microsoft.Playwright;
 
 namespace FerryTimes.Core.Scraping;
 
-public class VaearaiScraper(FailureNotifier failureNotifier, ILogger<VaearaiScraper> logger)
-    : BaseFerryScraper(failureNotifier, logger)
+public class VaearaiScraper(ILogger<VaearaiScraper> logger)
+    : BaseFerryScraper(logger)
 {
     protected override string TimetableUrl => "https://www.vaearai.com/horaires/";
     protected override string StartDateSelector => "#startDate";

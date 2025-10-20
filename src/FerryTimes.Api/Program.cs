@@ -30,7 +30,6 @@ builder.Services.AddScoped<IFerryScraper, AremitiScraper>();
 builder.Services.AddScoped<IFerryScraper, VaearaiScraper>();
 builder.Services.AddHostedService<TimetableScraperService>();
 builder.Services.AddHostedService<ApiUsageLogProcessor>();
-builder.Services.AddSingleton<FailureNotifier>();
 
 // Minimal APIs
 var app = builder.Build();
