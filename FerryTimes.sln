@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FerryTimes.Api", "src\Ferry
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FerryTimes.Core", "src\FerryTimes.Core\FerryTimes.Core.csproj", "{E5CE17A3-DC03-46C3-AE9B-49D40027873D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FerryTimes.Web", "src\FerryTimes.Web\FerryTimes.Web.csproj", "{B64BDCBE-6F97-4DC1-97F9-99D66A5221F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +28,14 @@ Global
 		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5CE17A3-DC03-46C3-AE9B-49D40027873D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B64BDCBE-6F97-4DC1-97F9-99D66A5221F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B64BDCBE-6F97-4DC1-97F9-99D66A5221F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B64BDCBE-6F97-4DC1-97F9-99D66A5221F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B64BDCBE-6F97-4DC1-97F9-99D66A5221F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E92987F2-AA1C-4D99-8685-2F373827566C} = {2B4A3D7C-0320-40C1-9551-233DCB1C87C6}
 		{E5CE17A3-DC03-46C3-AE9B-49D40027873D} = {2B4A3D7C-0320-40C1-9551-233DCB1C87C6}
+		{B64BDCBE-6F97-4DC1-97F9-99D66A5221F2} = {2B4A3D7C-0320-40C1-9551-233DCB1C87C6}
 	EndGlobalSection
 EndGlobal
