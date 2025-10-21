@@ -4,31 +4,72 @@
     ViewData["Title"] = "Ferry Timetables";
 }
 
+@section Sidebar {
+    <form method="get">
+        <div class="filter-section">
+            <h3>Departure Island</h3>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="from" value="Tahiti" id="tahitiCheck" checked="@Model.From.Contains("Tahiti")">
+                <label class="form-check-label" for="tahitiCheck">Tahiti</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="from" value="Moorea" id="mooreCheck" checked="@Model.From.Contains("Moorea")">
+                <label class="form-check-label" for="mooreCheck">Moorea</label>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <h3>Companies</h3>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="company" value="Aremiti" id="aremitiCheck" checked="@Model.Company.Contains("Aremiti")">
+                <label class="form-check-label" for="aremitiCheck">Aremiti</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="company" value="Terevau" id="terevauCheck" checked="@Model.Company.Contains("Terevau")">
+                <label class="form-check-label" for="terevauCheck">Terevau</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="company" value="Vaearai" id="vaearaiCheck" checked="@Model.Company.Contains("Vaearai")">
+                <label class="form-check-label" for="vaearaiCheck">Vaearai</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="company" value="Tauati" id="tauatiCheck" checked="@Model.Company.Contains("Tauati")">
+                <label class="form-check-label" for="tauatiCheck">Tauati</label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+    </form>
+}
+
 <div class="text-center mb-4">
-    <h1 class="display-4">Next Ferry from Tahiti</h1>
-    @if (Model.NextFerryFromTahiti != null)
+    <h1 class="display-4">Upcoming ferries</h1>
+    @if (Model.FilteredTimetables.Any())
     {
-        <div class="alert alert-info mt-3">
-            <div class="table-responsive">
-                <table class="table table-bordered mb-0">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+                <thead>
                     <tr>
                         <th>Departure</th>
-                        <td>@Model.NextFerryFromTahiti.Departure.ToString("HH:mm")</td>
-                    </tr>
-                    <tr>
-                        <th>Destination</th>
-                        <td>@Model.NextFerryFromTahiti.Destination</td>
-                    </tr>
-                    <tr>
+                        <th>From</th>
                         <th>Company</th>
-                        <td>@Model.NextFerryFromTahiti.Company</td>
                     </tr>
-                </table>
-            </div>
+                </thead>
+                <tbody>
+                    @foreach (var timetable in Model.FilteredTimetables)
+                    {
+                        <tr>
+                            <td>@timetable.Departure.ToString("HH:mm")</td>
+                            <td>@timetable.Origin</td>
+                            <td>@timetable.Company</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     }
     else
     {
-        <p class="alert alert-warning">No upcoming ferries from Tahiti scheduled.</p>
+        <p class="alert alert-warning">No upcoming ferries found matching your filters.</p>
     }
 </div>

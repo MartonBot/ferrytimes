@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using FerryTimes.Core;
 using FerryTimes.Core.Data;
@@ -10,7 +11,13 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     private readonly AppDbContext _context;
 
-    public Timetable? NextFerryFromTahiti { get; private set; }
+    public List<Timetable> FilteredTimetables { get; private set; } = new();
+
+    [BindProperty(SupportsGet = true)]
+    public List<string> From { get; set; } = new();
+
+    [BindProperty(SupportsGet = true)]
+    public List<string> Company { get; set; } = new();
 
     TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
 
@@ -22,10 +29,23 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-        DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
-        var today = now.Date;
-        var tomorrow = today.AddDays(1);
+        // Set default values if no filters are selected
+        if (!From.Any())
+        {
+            From.Add("Tahiti");
+        }
+        if (!Company.Any())
+        {
+            Company.AddRange(new[] { "Aremiti", "Terevau", "Vaearai", "Tauati" });
+        }
 
-        NextFerryFromTahiti = await _context.Timetables.FirstOrDefaultAsync();
+        DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
+
+        FilteredTimetables = await _context.Timetables
+            .Where(t => From.Contains(t.Origin))
+            .Where(t => Company.Contains(t.Company))
+            .OrderBy(t => t.Departure)
+            .Take(5)
+            .ToListAsync();
     }
 }

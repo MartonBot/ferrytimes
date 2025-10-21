@@ -31,9 +31,18 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="sidebar bg-light p-3 border rounded">
+                    @await RenderSectionAsync("Sidebar", required: false)
+                </div>
+            </div>
+            <div class="col-md-9">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
     </div>
 
     <footer class="border-top footer text-muted">
