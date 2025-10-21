@@ -48,7 +48,4 @@ document.addEventListener('DOMContentLoaded', function() {
             tableBody.style.opacity = '1';
         }
     }
-
-    // Auto-refresh every 60 seconds
-    setInterval(refreshTimetable, 60000);
 });

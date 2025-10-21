@@ -11,6 +11,8 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     private readonly AppDbContext _context;
 
+    private static TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
+
     public List<Timetable> FilteredTimetables { get; private set; } = new();
 
     [BindProperty(SupportsGet = true)]
@@ -20,9 +22,9 @@ public class IndexModel : PageModel
     public List<string> Company { get; set; } = new();
 
     [BindProperty(SupportsGet = true)]
-    public DateTime? Date { get; set; }
+    public DateTime Date { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
 
-    TimeZoneInfo tahitiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific/Tahiti");
+    public DateTime TahitiNow => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
 
     public IndexModel(ILogger<IndexModel> logger, AppDbContext context)
     {
@@ -40,6 +42,7 @@ public class IndexModel : PageModel
         await LoadFilteredTimetables();
         return new JsonResult(FilteredTimetables.Select(t => new
         {
+            date = t.Departure,
             departure = t.Departure.ToString("ddd dd/MM HH:mm"),
             origin = t.Origin,
             company = t.Company
@@ -58,10 +61,8 @@ public class IndexModel : PageModel
             Company.AddRange(new[] { "Aremiti", "Terevau", "Vaearai", "Tauati" });
         }
 
-        DateTime now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tahitiTimeZone);
-        DateTime filterDate = Date?.Date ?? now.Date;
-        DateTime startOfDay = filterDate;
-        DateTime endOfDay = filterDate.AddDays(1);
+        DateTime startOfDay = Date.Date;
+        DateTime endOfDay = Date.Date.AddDays(1);
 
         var query = _context.Timetables
             .Where(t => From.Contains(t.Origin))
@@ -69,9 +70,9 @@ public class IndexModel : PageModel
             .Where(t => t.Departure >= startOfDay && t.Departure < endOfDay);
 
         // If we're filtering for today, only show future departures
-        if (filterDate.Date == now.Date)
+        if (Date.Date == TahitiNow.Date)
         {
-            query = query.Where(t => t.Departure >= now);
+            query = query.Where(t => t.Departure >= TahitiNow);
         }
 
         FilteredTimetables = await query

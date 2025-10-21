@@ -9,12 +9,13 @@
         <div class="filter-section">
             <h3>Date</h3>
             <div class="mb-3">
-                <input type="date" class="form-control" id="dateFilter" name="date" value="@(Model.Date?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" />
+                <input type="date" class="form-control" id="dateFilter" name="date" value="@(Model.Date.ToString("yyyy-MM-dd") ?? Model.TahitiNow.ToString("yyyy-MM-dd"))" />
             </div>
+            <small class="text-muted d-block mb-3">Times shown in Tahiti timezone (UTC-10)</small>
         </div>
 
         <div class="filter-section">
-            <h3>Departure Island</h3>
+            <h3>From</h3>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="from" value="Tahiti" id="tahitiCheck" checked="@Model.From.Contains("Tahiti")">
                 <label class="form-check-label" for="tahitiCheck">Tahiti</label>
@@ -50,7 +51,7 @@
 }
 
 <div class="text-center mb-4">
-    <h1 class="display-4">Upcoming ferries</h1>
+    <h1 class="display-4">Timetables</h1>
     <div id="loadingIndicator" style="display: none;" class="text-center mb-3">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
