@@ -22,7 +22,12 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddScoped<IFerryScraper, TerevauScraper>();
 builder.Services.AddScoped<IFerryScraper, AremitiScraper>();
 builder.Services.AddScoped<IFerryScraper, VaearaiScraper>();
-builder.Services.AddHostedService<TimetableScraperService>();
+
+if (builder.Configuration.GetValue<bool>("Features:EnableTimetableScraping"))
+{
+    builder.Services.AddHostedService<TimetableScraperService>();
+}
+
 
 var app = builder.Build();
 
