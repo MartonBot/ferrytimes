@@ -29,6 +29,22 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
+        await LoadFilteredTimetables();
+    }
+
+    public async Task<IActionResult> OnGetFilteredTimetablesAsync()
+    {
+        await LoadFilteredTimetables();
+        return new JsonResult(FilteredTimetables.Select(t => new
+        {
+            departure = t.Departure.ToString("HH:mm"),
+            origin = t.Origin,
+            company = t.Company
+        }));
+    }
+
+    private async Task LoadFilteredTimetables()
+    {
         // Set default values if no filters are selected
         if (!From.Any())
         {

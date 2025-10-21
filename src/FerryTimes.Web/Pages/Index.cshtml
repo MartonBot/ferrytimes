@@ -5,7 +5,7 @@
 }
 
 @section Sidebar {
-    <form method="get">
+    <form id="filterForm" method="get">
         <div class="filter-section">
             <h3>Departure Island</h3>
             <div class="form-check">
@@ -44,32 +44,39 @@
 
 <div class="text-center mb-4">
     <h1 class="display-4">Upcoming ferries</h1>
-    @if (Model.FilteredTimetables.Any())
-    {
-        <div class="table-responsive">
-            <table class="table table-bordered mb-0">
-                <thead>
-                    <tr>
-                        <th>Departure</th>
-                        <th>From</th>
-                        <th>Company</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var timetable in Model.FilteredTimetables)
-                    {
-                        <tr>
-                            <td>@timetable.Departure.ToString("HH:mm")</td>
-                            <td>@timetable.Origin</td>
-                            <td>@timetable.Company</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <div id="loadingIndicator" style="display: none;" class="text-center mb-3">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-    }
-    else
-    {
-        <p class="alert alert-warning">No upcoming ferries found matching your filters.</p>
-    }
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered mb-0">
+            <thead>
+                <tr>
+                    <th>Departure</th>
+                    <th>From</th>
+                    <th>Company</th>
+                </tr>
+            </thead>
+            <tbody id="timetableBody">
+                @foreach (var timetable in Model.FilteredTimetables)
+                {
+                    <tr>
+                        <td>@timetable.Departure.ToString("HH:mm")</td>
+                        <td>@timetable.Origin</td>
+                        <td>@timetable.Company</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p id="noDataMessage" class="alert alert-warning" style="display: @(Model.FilteredTimetables.Any() ? "none" : "block")">
+        No upcoming ferries found matching your filters.
+    </p>
+
+@section Scripts {
+    <script src="~/js/timetable.js"></script>
+}
 </div>
